@@ -14,7 +14,6 @@ export const meta: V2_MetaFunction = () => {
 
 export const loader = async ({ request }: LoaderArgs) => {
   const pikachuQuery = fetch("https://pokeapi.co/api/v2/pokemon/pikachu");
-  const charmanderQuery = fetch("https://pokeapi.co/api/v2/pokemon/charmander");
   const dittoQuery = new Promise((resolve) => {
     setTimeout(() => {
       resolve(fetch("https://pokeapi.co/api/v2/pokemon/ditto"));
@@ -23,20 +22,20 @@ export const loader = async ({ request }: LoaderArgs) => {
   const squirtleQuery = new Promise((resolve) => {
     setTimeout(() => {
       resolve(fetch("https://pokeapi.co/api/v2/pokemon/squirtle"));
-    }, 2000);
+    }, 1500);
   });
 
-  const pikachu = await pikachuQuery.then((res) => res.json());
-  const charmander = charmanderQuery.then((res) => res.json());
+  const pikachu = await pikachuQuery.then((res: any) => res.json());
   const ditto = dittoQuery.then((res: any) => res.json());
   const squirtle = squirtleQuery.then((res: any) => res.json());
 
-  return defer({ pikachu, charmander, ditto, squirtle });
+  return defer({ pikachu, ditto, squirtle });
 };
 
 export default function Index() {
-  const { pikachu, charmander, ditto, squirtle } = useLoaderData();
+  const { pikachu, ditto, squirtle } = useLoaderData();
 
+  // framer-motion useInView, no suspense
   const pikachuRef = useRef(null);
   const pikachuIsInView = useInView(pikachuRef, {
     once: true,
@@ -45,14 +44,7 @@ export default function Index() {
     console.log("pikachuIsInView", pikachuIsInView);
   }, [pikachuIsInView]);
 
-  const charmanderRef = useRef(null);
-  const charmanderIsInView = useInView(charmanderRef, {
-    once: true,
-  });
-  useEffect(() => {
-    console.log("charmanderIsInView", charmanderIsInView);
-  }, [charmanderIsInView]);
-
+  // framer-motion useInView, suspense
   const dittoRef = useRef(null);
   const dittoIsInView = useInView(dittoRef, {
     once: true,
@@ -61,6 +53,7 @@ export default function Index() {
     console.log("dittoIsInView", dittoIsInView);
   }, [dittoIsInView]);
 
+  // react-intersection-observer useInView, suspense
   const { ref: squirtleRef, inView: squirtleIsInView } = observerUseInView({
     triggerOnce: true,
   });
@@ -71,7 +64,7 @@ export default function Index() {
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <h1>Pokemon</h1>
-      {/* no suspense */}
+      {/* framer-motion useInView, no suspense */}
       <motion.div
         ref={pikachuRef}
         animate={pikachuIsInView ? { translateX: 0 } : { translateX: 300 }}
@@ -80,24 +73,7 @@ export default function Index() {
         <h2>{pikachu.name}</h2>
         <img src={pikachu.sprites.front_default} alt="pikachu" />
       </motion.div>
-      {/* suspense with non-delayed response */}
-      <Suspense fallback={<div>Loading...</div>}>
-        <Await resolve={charmander}>
-          {(charmander: any) => (
-            <motion.div
-              ref={charmanderRef}
-              animate={
-                charmanderIsInView ? { translateX: 0 } : { translateX: 300 }
-              }
-              transition={{ duration: 0.25 }}
-            >
-              <h2>{charmander.name}</h2>
-              <img src={charmander.sprites.front_default} alt="charmander" />
-            </motion.div>
-          )}
-        </Await>
-      </Suspense>
-      {/* suspense with delayed response */}
+      {/* framer-motion useInView, suspense */}
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={ditto}>
           {(ditto: any) => (
@@ -112,7 +88,7 @@ export default function Index() {
           )}
         </Await>
       </Suspense>
-      {/* using react-intersection-observer with a delayed response */}
+      {/* react-intersection-observer useInView, suspense */}
       <Suspense fallback={<div>Loading...</div>}>
         <Await resolve={squirtle}>
           {(squirtle: any) => (
