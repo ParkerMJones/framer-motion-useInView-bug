@@ -1,4 +1,5 @@
-import { type V2_MetaFunction, type LoaderArgs, defer } from "@remix-run/node";
+import { defer } from "@remix-run/node";
+import type { V2_MetaFunction, LoaderArgs } from "@remix-run/node";
 import { Await, useLoaderData } from "@remix-run/react";
 import { motion, useInView } from "framer-motion";
 import { useInView as observerUseInView } from "react-intersection-observer";
